@@ -52,7 +52,17 @@ def makemovingvert(movenum, colorr, colorg, colorb, recx, recy, rech, recv, newy
         fancymovey[movenum] -= 2
 
 
-
+def makewall(colorr, colorg, colorb, recx, recy, rech, recv):
+    global xpos
+    global ypos
+    global isOnGround
+    global vy
+    pygame.draw.rect(screen, (colorr, colorg, colorb), (recx, recy, rech, recv))
+    if xpos>(recx-20) and xpos<(recx+rech) and ypos+40 >recy and ypos+40 <(recy+recv):
+        if vy > 0:
+            ypos = recy-40
+            isOnGround = True
+            vy = 0
 
 
 winning = False
@@ -67,6 +77,12 @@ uwin = pygame.image.load("you_win.png")
 
 dirt = pygame.image.load("dirt.jpg")
 
+
+#SOUND--------------------------------------------------------------------
+jump = pygame.mixer.Sound('jump.ogg')#load in sound effect
+music = pygame.mixer.music.load('music.ogg')#load in background music
+pygame.mixer.music.play(-1)#start background music
+#-------------------------------------------------------------------------
 
 
 while not gameover: #GAME LOOP############################################################
@@ -104,41 +120,37 @@ while not gameover: #GAME LOOP##################################################
           
     #physics section--------------------------------------------------------------------
     #MOVEMENT
-    vx=playaccel
     if keys[SHIFT]==True and keys[DOWN]==False:
         maxspeed = 6
     else:
         maxspeed = 3
     if keys[LEFT]==True:
-        if (maxspeed * -1) < playaccel:
+        if vx > 0:
             playaccel -= 0.5
-        elif (maxspeed * -1) > playaccel:
+        else:
             playaccel += 0.5
-        if vx < 0:
             leftness = True
         direction = LEFT
     elif keys[RIGHT]==True:
-        if maxspeed > playaccel:
-            playaccel += 0.5
-        elif maxspeed < playaccel:
+        if vx < 0:
             playaccel -= 0.5
-        if vx > 0:
+        else:
+            playaccel += 0.5
             leftness = False
         direction = RIGHT
-
-    #turn off velocity
     else:
-        if vx != 0:
-            if leftness == True:
-                playaccel += 0.5
-            else:
-                playaccel -= 0.5
-        
+        playaccel -= 0.5
+    #turn off velocity
+    if playaccel < 0:
+        playaccel = 0
+    if playaccel > maxspeed:
+        playaccel = maxspeed
         #JUMPING
     if keys[UP] == True and isOnGround == True: #only jump when on the ground
         vy = -8
         isOnGround = False
         direction = UP
+        pygame.mixer.Sound.play(jump)
     
     
 
@@ -158,7 +170,12 @@ while not gameover: #GAME LOOP##################################################
     if xpos>80 and xpos<164 and ypos+40 >100 and ypos <164:
         winning = True
 
-    
+    if xpos < 0:
+        xpos = 0
+        playaccel = 0
+    elif xpos > 1180:
+        xpos = 1180
+        playaccel = 0
     #stop falling if on bottom of game screen
     if ypos > 760:
         isOnGround = True
@@ -169,9 +186,12 @@ while not gameover: #GAME LOOP##################################################
     if isOnGround == False:
         vy+=.2 #notice this grows over time, aka ACCELERATION
     
-
+    if leftness == True:
+        vx=(playaccel * -1)
+    else:
+        vx=playaccel
     #update player position
-    xpos+=vx 
+    xpos+=vx
     ypos+=vy
     
   
