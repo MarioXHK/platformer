@@ -13,14 +13,16 @@ UP = 2
 DOWN = 3
 SHIFT = 4
 
-playaccel = 0
-leftness = True
-maxspeed = 0
+
 #player variables
 xpos = 500 #xpos of player
 ypos = 200 #ypos of player
 vx = 0 #x velocity of player
 vy = 0 #y velocity of player
+playaccel = 0 #umm... amogus?
+leftness = True #Are you going left or right?
+maxspeed = 0 #The speed limit
+vloss = 0 #the height lost from the player
 keys = [False, False, False, False, False] #this list holds whether each key has been pressed
 isOnGround = False #this variable stops gravity from pulling you down more when on a platform
 
@@ -55,14 +57,35 @@ def makemovingvert(movenum, colorr, colorg, colorb, recx, recy, rech, recv, newy
 def makewall(colorr, colorg, colorb, recx, recy, rech, recv):
     global xpos
     global ypos
+    global vx
+    global keys
+    global playaccel
+    pygame.draw.rect(screen, (colorr, colorg, colorb), (recx, recy, rech, recv))
+    if ypos+40 >recy and ypos+vloss <(recy+recv) and xpos+20 >= recx and xpos <= (recx+rech):
+        playaccel = 0
+        if xpos < recx:
+            xpos = recx-20
+            if keys[LEFT] == False:
+                vx = 0
+        else:
+            xpos = recx+rech
+            if keys[RIGHT] == False:
+                vx = 0
+        
+def makeroof(colorr, colorg, colorb, recx, recy, rech, recv):
+    global xpos
+    global ypos
     global isOnGround
     global vy
+    global vloss
     pygame.draw.rect(screen, (colorr, colorg, colorb), (recx, recy, rech, recv))
-    if xpos>(recx-20) and xpos<(recx+rech) and ypos+40 >recy and ypos+40 <(recy+recv):
-        if vy > 0:
-            ypos = recy-40
-            isOnGround = True
+    if xpos>(recx-20) and xpos<(recx+rech) and ypos+vloss >recy and ypos+vloss <(recy+recv):
+        if vy < 0:
+            ypos = (recy+recv)-vloss
             vy = 0
+        if recy+recv > ypos and isOnGround == True:
+            vloss = 20
+            
 
 
 winning = False
@@ -156,16 +179,8 @@ while not gameover: #GAME LOOP##################################################
 
     
     #COLLISION
-    if xpos>130 and xpos<250 and ypos+40 >600 and ypos+40 <620:
-        ypos = 600-40
-        isOnGround = True
-        vy = 0
-    elif xpos>130 and xpos<250 and ypos+40 >600 and ypos+40 <620:
-        ypos = 600-40
-        isOnGround = True
-        vy = 0
-    else:
-        isOnGround = False
+
+    isOnGround = False
     
     if xpos>80 and xpos<164 and ypos+40 >100 and ypos <164:
         winning = True
@@ -190,9 +205,7 @@ while not gameover: #GAME LOOP##################################################
         vx=(playaccel * -1)
     else:
         vx=playaccel
-    #update player position
-    xpos+=vx
-    ypos+=vy
+    
     
   
     # RENDER Section--------------------------------------------------------------------------------
@@ -205,13 +218,13 @@ while not gameover: #GAME LOOP##################################################
     
     if winning == True:
         screen.blit(uwin, (200, 200))
+    
     if keys[DOWN]==True:
-        pygame.draw.rect(screen, (100, 200, 100), (xpos, ypos+20, 20, 20))
+        vloss = 20
     else:
-        pygame.draw.rect(screen, (100, 200, 100), (xpos, ypos, 20, 40))
-    
-    
-    #platforms
+        vloss = 0
+    pygame.draw.rect(screen, (100, 200, 100), (xpos, ypos+vloss, 20, 40-vloss))
+    #objects
     makeplatform(200, 0, 100, 100, 750, 100, 20)
     
     makeplatform(100, 0, 200, 200, 650, 100, 20)
@@ -228,7 +241,18 @@ while not gameover: #GAME LOOP##################################################
     
     makeplatform(200, 0, 0, 100, 164, 64, 10)
     
+    makewall(200, 0, 0, 700, 670, 20, 100)
+    
+    makeroof(100, 0, 200, 500, 660, 50, 50)
+    
+    makeroof(100, 50, 150, 500, 770, 100, 50)
+    
     screen.blit(dirt, (0, 800))
+    
+    
+    #update player position
+    xpos+=vx
+    ypos+=vy
     
     pygame.display.flip()#this actually puts the pixel on the screen
     
