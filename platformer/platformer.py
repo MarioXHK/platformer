@@ -13,10 +13,11 @@ UP = 2
 DOWN = 3
 SHIFT = 4
 
+ducking = False
 
 #player variables
-xpos = 500 #xpos of player
-ypos = 200 #ypos of player
+xpos = 350 #xpos of player
+ypos = 770 #ypos of player
 vx = 0 #x velocity of player
 vy = 0 #y velocity of player
 playaccel = 0 #umm... amogus?
@@ -25,7 +26,6 @@ maxspeed = 0 #The speed limit
 vloss = 0 #the height lost from the player
 keys = [False, False, False, False, False] #this list holds whether each key has been pressed
 isOnGround = False #this variable stops gravity from pulling you down more when on a platform
-
 
 def makeplatform(colorr, colorg, colorb, recx, recy, rech, recv):
     global xpos
@@ -78,13 +78,16 @@ def makeroof(colorr, colorg, colorb, recx, recy, rech, recv):
     global isOnGround
     global vy
     global vloss
+    global ducking
     pygame.draw.rect(screen, (colorr, colorg, colorb), (recx, recy, rech, recv))
-    if xpos>(recx-20) and xpos<(recx+rech) and ypos+vloss >recy and ypos+vloss <(recy+recv):
-        if vy < 0:
-            ypos = (recy+recv)-vloss
-            vy = 0
+    if xpos>(recx-20) and xpos<(recx+rech):
+        if ypos+vloss >recy and ypos+vloss <(recy+recv):
+            if vy < 0:
+                ypos = (recy+recv)-vloss
+                vy = 0
         if recy+recv > ypos and isOnGround == True:
-            vloss = 20
+            ducking = True
+        
             
 
 
@@ -143,7 +146,9 @@ while not gameover: #GAME LOOP##################################################
           
     #physics section--------------------------------------------------------------------
     #MOVEMENT
-    if keys[SHIFT]==True and keys[DOWN]==False:
+    ducking = False
+                
+    if keys[SHIFT]==True and vloss < 10:
         maxspeed = 6
     else:
         maxspeed = 3
@@ -174,13 +179,16 @@ while not gameover: #GAME LOOP##################################################
         isOnGround = False
         direction = UP
         pygame.mixer.Sound.play(jump)
+    if keys[DOWN]==True:
+        ducking=True
     
     
-
+    
     
     #COLLISION
 
     isOnGround = False
+    
     
     if xpos>80 and xpos<164 and ypos+40 >100 and ypos <164:
         winning = True
@@ -219,11 +227,7 @@ while not gameover: #GAME LOOP##################################################
     if winning == True:
         screen.blit(uwin, (200, 200))
     
-    if keys[DOWN]==True:
-        vloss = 20
-    else:
-        vloss = 0
-    pygame.draw.rect(screen, (100, 200, 100), (xpos, ypos+vloss, 20, 40-vloss))
+    
     #objects
     makeplatform(200, 0, 100, 100, 750, 100, 20)
     
@@ -245,16 +249,19 @@ while not gameover: #GAME LOOP##################################################
     
     makeroof(100, 0, 200, 500, 660, 50, 50)
     
-    makeroof(100, 50, 150, 500, 770, 100, 50)
+    makeroof(100, 50, 150, 300, 725, 100, 50)
     
     screen.blit(dirt, (0, 800))
     
-    
+    if ducking==True:
+        vloss = 20
+    else:
+        vloss = 0
     #update player position
     xpos+=vx
     ypos+=vy
-    
+    pygame.draw.rect(screen, (100, 200, 100), (xpos, ypos+vloss, 20, 40-vloss))
     pygame.display.flip()#this actually puts the pixel on the screen
-    
+    print (isOnGround)
 #end game loop------------------------------------------------------------------------------
 pygame.quit()
