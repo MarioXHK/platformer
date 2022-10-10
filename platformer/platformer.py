@@ -14,7 +14,6 @@ UP = 2
 DOWN = 3
 SHIFT = 4
 
-ducking = False
 
 #player variables
 xpos = 350 #xpos of player
@@ -27,19 +26,20 @@ maxspeed = 0 #The speed limit
 vloss = 0 #the height lost from the player
 keys = [False, False, False, False, False] #this list holds whether each key has been pressed
 isOnGround = False #this variable stops gravity from pulling you down more when on a platform
-
+ducking = False
 
 
 
 #enemy variables
-expos = [150,700,0]
-eypos = [550,750,0]
+expos = [150,700,200]
+eypos = [550,750,200]
 evy = [0,0,0]
 eleftn = [False,False,False]
 eground = [False,False,False]
 ewell = ["goomb","goomb","goomb"]
 
-#Fancy moving platforms varables oooo
+#Level variables
+level = 0
 fancymovey=[200,0,0,0]
 fancything=[True,True,True,True]
 
@@ -110,6 +110,7 @@ def makeplatform(colorr, colorg, colorb, recx, recy, rech, recv): #Makes platfor
             vy = 0
     echeck(recx,rech,recy,recv,0,"platform")
     echeck(recx,rech,recy,recv,1,"platform")
+    echeck(recx,rech,recy,recv,2,"platform")
                 
 def makemovingvert(movenum, colorr, colorg, colorb, recx, recy, rech, recv, newy): #Makes vertical moving platforms that you can stand on
     global fancymovey
@@ -146,6 +147,7 @@ def makewall(colorr, colorg, colorb, recx, recy, rech, recv): #Makes walls that 
                 vx = 0
     echeck(recx,rech,recy,recv,0,"wall")
     echeck(recx,rech,recy,recv,1,"wall")
+    echeck(recx,rech,recy,recv,2,"wall")
         
 def makeroof(colorr, colorg, colorb, recx, recy, rech, recv): #Makes roofs that you can't jump through
     global xpos
@@ -171,7 +173,7 @@ def enemy(enum,etype): #Makes something to fight
     global evy
     global ewell
     ewell[enum] = etype
-    if etype == "goomb" or etype == "smart":
+    if etype == "goomb" or etype == "smart" or etype == "jumpy":
         if eleftn[enum] == False:
             expos[enum] += 2
         else:
@@ -186,43 +188,51 @@ def enemy(enum,etype): #Makes something to fight
             eypos[enum] = 780
         if eground[enum] == False:
             evy[enum]+=.2
+        if eground[enum] == True and etype == "jumpy":
+            evy[enum] = -4
         eypos[enum] += evy[enum]
         if etype == "goomb":
             pygame.draw.rect(screen, (100, 50, 0), (expos[enum], eypos[enum], 20, 20))
         elif etype == "smart":
             pygame.draw.rect(screen, (250, 250, 250), (expos[enum], eypos[enum], 20, 20))
+        elif etype == "jumpy":
+            pygame.draw.rect(screen, (200, 20, 2), (expos[enum], eypos[enum], 20, 20))
+        else:
+            pygame.draw.rect(screen, (0, 255, 255), (expos[enum], eypos[enum], 20, 20))
 
 def levelmake(): #Makes the level
-    makeplatform(200, 0, 100, 100, 750, 100, 20)
+    global level
+    if level == 0:
+        makeplatform(200, 0, 100, 100, 750, 100, 20)
     
-    makeplatform(100, 0, 200, 200, 650, 100, 20)
-    
-    makeplatform(100, 200, 50, 150, 600, 100, 20)
-    
-    makeplatform(200, 100, 0, 700, 600, 100, 20)
-    
-    pygame.draw.line(screen, (0, 0, 0,), (700, 600),(800, 600), width=5)
-    
-    makemovingvert(0, 0, 50, 200, 800, 200, 100, 20, 500)
-    
-    makeplatform(0, 200, 150, 300, 300, 100, 20)
-    
-    makeplatform(200, 0, 0, 100, 164, 64, 10)
-    
-    makewall(200, 0, 0, 700, 670, 20, 100)
-    
-    makewall(200, 0, 0, 1000, 750, 10, 50)
-    
-    makeroof(100, 0, 200, 500, 660, 50, 50)
-    
-    makeroof(100, 50, 150, 300, 725, 100, 50)
+        makeplatform(100, 0, 200, 200, 650, 100, 20)
+        
+        makeplatform(100, 200, 50, 150, 600, 100, 20)
+        
+        makeplatform(200, 100, 0, 700, 600, 100, 20)
+        
+        pygame.draw.line(screen, (0, 0, 0,), (700, 600),(800, 600), width=5)
+        
+        makemovingvert(0, 0, 50, 200, 800, 200, 100, 20, 500)
+        
+        makeplatform(0, 200, 150, 300, 300, 100, 20)
+        
+        makeplatform(200, 0, 0, 100, 164, 64, 10)
+        
+        makewall(200, 0, 0, 700, 670, 20, 100)
+        
+        makewall(200, 0, 0, 1000, 750, 10, 50)
+        
+        makeroof(100, 0, 200, 500, 660, 50, 50)
+        
+        makeroof(100, 50, 150, 300, 725, 100, 50)
 
-    enemy(0, "smart")
-    enemy(1, "goomb")
+        enemy(0, "smart")
+        enemy(1, "goomb")
+        enemy(2, "jumpy")
 
 
-
-#pygame.mixer.music.play(-1)#start background music
+pygame.mixer.music.play(-1)#start background music
 #-------------------------------------------------------------------------
 
 
@@ -308,6 +318,7 @@ while not gameover: #GAME LOOP##################################################
     
     if xpos>80 and xpos<164 and ypos+40 >100 and ypos <164:
         winning = True
+        level = 1
 
     if xpos < 0:
         xpos = 0
