@@ -33,7 +33,11 @@ ducking = False
 #enemy variables
 expos = [150,700,200]
 eypos = [550,750,200]
+evx = [0,0,0]
 evy = [0,0,0]
+enaccel = [0,0,0]
+exsize = [20, 40, 30]
+eysize = [20, 30, 40]
 eleftn = [False,False,False]
 eground = [False,False,False]
 ewell = ["goomb","goomb","goomb"]
@@ -70,6 +74,7 @@ def echeck(irecx,irech,irecy,irecv,enumb,prtype):
     global eypos
     global evy
     global eleftn
+    global ewell
     if prtype == "platform":
         if expos[enumb]>(irecx-20) and expos[enumb]<(irecx+irech) and eypos[enumb]+20 >irecy and eypos[enumb]+20 <(irecy+irecv):
             if evy[enumb] > 0:
@@ -87,9 +92,31 @@ def echeck(irecx,irech,irecy,irecv,enumb,prtype):
                 eleftn[enumb] = False
             else:
                 eleftn[enumb] = True
+    elif prtype == "roof":
+        if expos[enumb]>(irecx-20) and expos[enumb]<(irecx+irech) and eypos[enumb] >irecy and eypos[enumb] <(irecy+irecv) and evy[enumb] < 0:
+            eypos[enumb] = (irecy+irecv)
+            evy[enumb] = 0
 
 
-
+def levelreload(): #reload the level
+    global xpos
+    global ypos
+    global expos
+    global eypos
+    global fancymovey
+    global fancything
+    if level == 0:
+        xpos = 350
+        ypos = 770
+        expos = [150,700,200]
+        eypos = [550,750,200]
+        fancymovey=[200,0,0,0]
+        fancything=[True,True,True,True]
+    elif level == 1:
+        xpos = 100
+        ypos = 760
+        expos = [1080, 0, 0]
+        eypos = [760, 0, 0]
 
 
 #Level parts
@@ -102,15 +129,16 @@ def makeplatform(colorr, colorg, colorb, recx, recy, rech, recv): #Makes platfor
     global eypos
     global evy
     global eleftn
+    global ewell
     pygame.draw.rect(screen, (colorr, colorg, colorb), (recx, recy, rech, recv))
     if xpos>(recx-20) and xpos<(recx+rech) and ypos+40 >recy and ypos+40 <(recy+recv):
         if vy > 0:
             ypos = recy-40
             isOnGround = True
             vy = 0
-    echeck(recx,rech,recy,recv,0,"platform")
-    echeck(recx,rech,recy,recv,1,"platform")
-    echeck(recx,rech,recy,recv,2,"platform")
+    for i in range(len(ewell)):
+        echeck(recx,rech,recy,recv,i,"platform")
+        
                 
 def makemovingvert(movenum, colorr, colorg, colorb, recx, recy, rech, recv, newy): #Makes vertical moving platforms that you can stand on
     global fancymovey
@@ -145,9 +173,8 @@ def makewall(colorr, colorg, colorb, recx, recy, rech, recv): #Makes walls that 
             xpos = recx+rech
             if keys[RIGHT] == False:
                 vx = 0
-    echeck(recx,rech,recy,recv,0,"wall")
-    echeck(recx,rech,recy,recv,1,"wall")
-    echeck(recx,rech,recy,recv,2,"wall")
+    for i in range(len(ewell)):
+        echeck(recx,rech,recy,recv,i,"wall")
         
 def makeroof(colorr, colorg, colorb, recx, recy, rech, recv): #Makes roofs that you can't jump through
     global xpos
@@ -164,41 +191,118 @@ def makeroof(colorr, colorg, colorb, recx, recy, rech, recv): #Makes roofs that 
                 vy = 0
         if recy+recv > ypos and ypos > recy:
             ducking = True
+    for i in range(len(ewell)):
+        echeck(recx,rech,recy,recv,i,"roof")
+#Enemy stuff
+def ephysic(ienum): #because yes
+    global expos
+    global eypos
+    global eleftn
+    global enaccel
+    global evx
+    global evy
+    global ewell
+    global exsize
+    global eysize
+    if expos[ienum] < 0 or expos[ienum] > (1200-exsize[ienum]):
+        if expos[ienum] < 0:
+            eleftn[ienum] = False
+        else:
+            eleftn[ienum] = True
+        if ewell[ienum] == "clone":
+            enaccel[ienum] = 0
+    if eypos[ienum] > (800-eysize[ienum]):
+        eground[ienum] = True
+        evy[ienum] = 0
+        eypos[ienum] = (800-eysize[ienum])
+    if eground[ienum] == False:
+        evy[ienum]+=.2
 
-#Other stuff
 def enemy(enum,etype): #Makes something to fight
     global expos
     global eypos
     global eleftn
+    global enaccel
+    global evx
     global evy
     global ewell
+    global exsize
+    global eysize
+    global vx
+    global vy
+    global vloss
+    global maxspeed
     ewell[enum] = etype
     if etype == "goomb" or etype == "smart" or etype == "jumpy":
         if eleftn[enum] == False:
             expos[enum] += 2
         else:
             expos[enum] -= 2
-        if expos[enum] < 0:
-            eleftn[enum] = False
-        elif expos[enum] > 1180:
-            eleftn[enum] = True
-        if eypos[enum] > 780:
-            eground[enum] = True
-            evy[enum] = 0
-            eypos[enum] = 780
-        if eground[enum] == False:
-            evy[enum]+=.2
+        ephysic(enum)
         if eground[enum] == True and etype == "jumpy":
             evy[enum] = -4
         eypos[enum] += evy[enum]
         if etype == "goomb":
-            pygame.draw.rect(screen, (100, 50, 0), (expos[enum], eypos[enum], 20, 20))
+            pygame.draw.rect(screen, (100, 50, 0), (expos[enum], eypos[enum], exsize[enum], eysize[enum]))
         elif etype == "smart":
-            pygame.draw.rect(screen, (250, 250, 250), (expos[enum], eypos[enum], 20, 20))
+            pygame.draw.rect(screen, (250, 250, 250), (expos[enum], eypos[enum], exsize[enum], eysize[enum]))
         elif etype == "jumpy":
-            pygame.draw.rect(screen, (200, 20, 2), (expos[enum], eypos[enum], 20, 20))
+            pygame.draw.rect(screen, (200, 20, 2), (expos[enum], eypos[enum], exsize[enum], eysize[enum]))
         else:
-            pygame.draw.rect(screen, (0, 255, 255), (expos[enum], eypos[enum], 20, 20))
+            pygame.draw.rect(screen, (0, 255, 255), (expos[enum], eypos[enum], exsize[enum], eysize[enum]))
+    elif etype == "clone": #challenge to make an enemy clone
+        exsize[enum] = 20
+        eysize[enum] = 40-vloss
+        if keys[LEFT]==True:
+            if evx[enum] > 0:
+                enaccel[enum] -= 0.5
+            else:
+                enaccel[enum] += 0.5
+                eleftn[enum] = True
+        elif keys[RIGHT]==True:
+            if evx[enum] < 0:
+                enaccel[enum] -= 0.5
+            else:
+                enaccel[enum] += 0.5
+                eleftn[enum] = False
+        else:
+            enaccel[enum] -= 0.5
+        #turn off velocity
+        if enaccel[enum] < 0:
+            enaccel[enum] = 0
+        if enaccel[enum] > maxspeed:
+            enaccel[enum] = maxspeed
+            #JUMPING
+        ephysic(enum)
+        if keys[UP] == True and eground[enum] == True: #only jump when on the ground
+            evy[enum] = -8
+            eground[enum] = False
+            pygame.mixer.Sound.play(jump)
+        if keys[UP] == False and evy[enum] < -2: #Jump cancel
+            evy[enum] = -2
+        if eleftn[enum] == True:
+            evx[enum]=(enaccel[enum] * -1)
+        else:
+            evx[enum]=enaccel[enum]
+        expos[enum] += evx[enum]
+        eypos[enum] += evy[enum]
+        pygame.draw.rect(screen, (50, 100, 50), (expos[enum], eypos[enum]+vloss, 20, 40-vloss))
+        
+#Important level things        
+
+def treedog(xwin, ywin):
+    global xpos
+    global ypos
+    global vx
+    global vy
+    global level
+    screen.blit(dog, (xwin, ywin))
+    if xpos>(xwin-20) and xpos<164 and ypos+40 >ywin and ypos <164:
+        level =+ 1
+        vx = 0
+        vy = 0
+        levelreload()
+        print(level)
 
 def levelmake(): #Makes the level
     global level
@@ -230,8 +334,11 @@ def levelmake(): #Makes the level
         enemy(0, "smart")
         enemy(1, "goomb")
         enemy(2, "jumpy")
-
-
+        treedog(100, 100)
+    if level == 1:
+        enemy(0, "clone")
+        makewall(200, 0, 0, 700, 670, 20, 100)
+        treedog(550, 100)
 pygame.mixer.music.play(-1)#start background music
 #-------------------------------------------------------------------------
 
@@ -315,10 +422,6 @@ while not gameover: #GAME LOOP##################################################
 
     isOnGround = False
     eground = [False,False,False]
-    
-    if xpos>80 and xpos<164 and ypos+40 >100 and ypos <164:
-        winning = True
-        level = 1
 
     if xpos < 0:
         xpos = 0
@@ -348,8 +451,6 @@ while not gameover: #GAME LOOP##################################################
     screen.fill((0,0,0)) #wipe screen so it doesn't smear
     
     screen.blit(thesky, (0, 0))
-    
-    screen.blit(dog, (100, 100))
     
     if winning == True:
         screen.blit(uwin, (200, 200))
