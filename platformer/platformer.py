@@ -75,25 +75,27 @@ def echeck(irecx,irech,irecy,irecv,enumb,prtype):
     global evy
     global eleftn
     global ewell
+    global exsize
+    global eysize
     if prtype == "platform":
-        if expos[enumb]>(irecx-20) and expos[enumb]<(irecx+irech) and eypos[enumb]+20 >irecy and eypos[enumb]+20 <(irecy+irecv):
+        if expos[enumb]>(irecx-exsize[enumb]) and expos[enumb]<(irecx+irech) and eypos[enumb]+eysize[enumb] >irecy and eypos[enumb]+eysize[enumb] <(irecy+irecv):
             if evy[enumb] > 0:
-                eypos[enumb] = irecy-20
+                eypos[enumb] = irecy-eysize[enumb]
                 eground[enumb] = True
                 evy[enumb] = 0
             if ewell[enumb] == "smart":
-                if expos[enumb] < irecx-10:
+                if expos[enumb] < irecx:
                     eleftn[enumb] = False
-                elif expos[enumb] > (irecx+irech)-10:
+                elif expos[enumb] > (irecx+irech)-exsize[enumb]:
                     eleftn[enumb] = True
     elif prtype == "wall":
-        if eypos[enumb]+20 >irecy and eypos[enumb] <(irecy+irecv) and expos[enumb]+20 >= irecx and expos[enumb] <= (irecx+irech):
+        if eypos[enumb]+eysize[enumb] >irecy and eypos[enumb] <(irecy+irecv) and expos[enumb]+exsize[enumb] >= irecx and expos[enumb] <= (irecx+irech):
             if eleftn[enumb] == True:
                 eleftn[enumb] = False
             else:
                 eleftn[enumb] = True
     elif prtype == "roof":
-        if expos[enumb]>(irecx-20) and expos[enumb]<(irecx+irech) and eypos[enumb] >irecy and eypos[enumb] <(irecy+irecv) and evy[enumb] < 0:
+        if expos[enumb]>(irecx-exsize[enumb]) and expos[enumb]<(irecx+irech) and eypos[enumb] >irecy and eypos[enumb] <(irecy+irecv) and evy[enumb] < 0:
             eypos[enumb] = (irecy+irecv)
             evy[enumb] = 0
 
@@ -112,11 +114,15 @@ def levelreload(): #reload the level
         eypos = [550,750,200]
         fancymovey=[200,0,0,0]
         fancything=[True,True,True,True]
+        exsize = [20, 40, 30]
+        eysize = [20, 30, 40]
     elif level == 1:
         xpos = 100
         ypos = 760
-        expos = [1080, 0, 0]
-        eypos = [760, 0, 0]
+        expos = [1080, 700, 0]
+        eypos = [760, 500, 0]
+        exsize = [20, 20, 20]
+        eysize = [20, 20, 20]
 
 
 #Level parts
@@ -336,8 +342,23 @@ def levelmake(): #Makes the level
         enemy(2, "jumpy")
         treedog(100, 100)
     if level == 1:
-        enemy(0, "clone")
-        makewall(200, 0, 0, 700, 670, 20, 100)
+        
+        makeplatform(0, 200, 100, 600, 700, 20, 20)
+        
+        makewall(200, 0, 0, 700, 600, 100, 100)
+        
+        makeplatform(0, 200, 100, 700, 590, 100, 10)
+        
+        makeroof(100, 50, 150, 705, 695, 90, 10)
+        
+        makewall(200, 0, 0, 900, 670, 100, 100)
+        
+        makeplatform(0, 200, 100, 900, 660, 100, 10)
+        
+        makeroof(100, 50, 150, 905, 725, 90, 50)
+        enemy(0, "smart")
+        enemy(1, "smart")
+        enemy(2, "smart")
         treedog(550, 100)
 pygame.mixer.music.play(-1)#start background music
 #-------------------------------------------------------------------------
