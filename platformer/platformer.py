@@ -16,7 +16,7 @@ SHIFT = 4
 
 
 #player variables
-xpos = 350 #xpos of player
+xpos = 300 #xpos of player
 ypos = 770 #ypos of player
 vx = 0 #x velocity of player
 vy = 0 #y velocity of player
@@ -27,7 +27,9 @@ vloss = 0 #the height lost from the player
 keys = [False, False, False, False, False] #this list holds whether each key has been pressed
 isOnGround = False #this variable stops gravity from pulling you down more when on a platform
 ducking = False
-
+phurt = 0
+dying = False
+php = 3
 
 
 #enemy variables
@@ -38,6 +40,7 @@ evy = [0,0,0]
 enaccel = [0,0,0]
 exsize = [20, 40, 30]
 eysize = [20, 30, 40]
+elive = [True,True,True]
 eleftn = [False,False,False]
 eground = [False,False,False]
 ewell = ["goomb","goomb","goomb"]
@@ -67,63 +70,6 @@ jump = pygame.mixer.Sound('jump.ogg')#load in sound effect
 music = pygame.mixer.music.load('music.ogg')#load in background music
 
 #FUNCTION DEFINING-------------------------------------------------------------------
-
-#Ez ifs
-def echeck(irecx,irech,irecy,irecv,enumb,prtype):
-    global expos
-    global eypos
-    global evy
-    global eleftn
-    global ewell
-    global exsize
-    global eysize
-    if prtype == "platform":
-        if expos[enumb]>(irecx-exsize[enumb]) and expos[enumb]<(irecx+irech) and eypos[enumb]+eysize[enumb] >irecy and eypos[enumb]+eysize[enumb] <(irecy+irecv):
-            if evy[enumb] > 0:
-                eypos[enumb] = irecy-eysize[enumb]
-                eground[enumb] = True
-                evy[enumb] = 0
-            if ewell[enumb] == "smart":
-                if expos[enumb] < irecx:
-                    eleftn[enumb] = False
-                elif expos[enumb] > (irecx+irech)-exsize[enumb]:
-                    eleftn[enumb] = True
-    elif prtype == "wall":
-        if eypos[enumb]+eysize[enumb] >irecy and eypos[enumb] <(irecy+irecv) and expos[enumb]+exsize[enumb] >= irecx and expos[enumb] <= (irecx+irech):
-            if eleftn[enumb] == True:
-                eleftn[enumb] = False
-            else:
-                eleftn[enumb] = True
-    elif prtype == "roof":
-        if expos[enumb]>(irecx-exsize[enumb]) and expos[enumb]<(irecx+irech) and eypos[enumb] >irecy and eypos[enumb] <(irecy+irecv) and evy[enumb] < 0:
-            eypos[enumb] = (irecy+irecv)
-            evy[enumb] = 0
-
-
-def levelreload(): #reload the level
-    global xpos
-    global ypos
-    global expos
-    global eypos
-    global fancymovey
-    global fancything
-    if level == 0:
-        xpos = 350
-        ypos = 770
-        expos = [150,700,200]
-        eypos = [550,750,200]
-        fancymovey=[200,0,0,0]
-        fancything=[True,True,True,True]
-        exsize = [20, 40, 30]
-        eysize = [20, 30, 40]
-    elif level == 1:
-        xpos = 100
-        ypos = 760
-        expos = [1080, 700, 0]
-        eypos = [760, 500, 0]
-        exsize = [20, 20, 20]
-        eysize = [20, 20, 20]
-
 
 #Level parts
 def makeplatform(colorr, colorg, colorb, recx, recy, rech, recv): #Makes platforms that you can stand on
@@ -199,7 +145,40 @@ def makeroof(colorr, colorg, colorb, recx, recy, rech, recv): #Makes roofs that 
             ducking = True
     for i in range(len(ewell)):
         echeck(recx,rech,recy,recv,i,"roof")
+
+
 #Enemy stuff
+
+def echeck(irecx,irech,irecy,irecv,enumb,prtype):
+    global expos
+    global eypos
+    global evy
+    global eleftn
+    global ewell
+    global exsize
+    global eysize
+    if prtype == "platform":
+        if expos[enumb]>(irecx-exsize[enumb]) and expos[enumb]<(irecx+irech) and eypos[enumb]+eysize[enumb] >irecy and eypos[enumb]+eysize[enumb] <(irecy+irecv):
+            if evy[enumb] > 0:
+                eypos[enumb] = irecy-eysize[enumb]
+                eground[enumb] = True
+                evy[enumb] = 0
+            if ewell[enumb] == "smart":
+                if expos[enumb] < irecx:
+                    eleftn[enumb] = False
+                elif expos[enumb] > (irecx+irech)-exsize[enumb]:
+                    eleftn[enumb] = True
+    elif prtype == "wall":
+        if eypos[enumb]+eysize[enumb] >irecy and eypos[enumb] <(irecy+irecv) and expos[enumb]+exsize[enumb] >= irecx and expos[enumb] <= (irecx+irech):
+            if eleftn[enumb] == True:
+                eleftn[enumb] = False
+            else:
+                eleftn[enumb] = True
+    elif prtype == "roof":
+        if expos[enumb]>(irecx-exsize[enumb]) and expos[enumb]<(irecx+irech) and eypos[enumb] >irecy and eypos[enumb] <(irecy+irecv) and evy[enumb] < 0:
+            eypos[enumb] = (irecy+irecv)
+            evy[enumb] = 0
+
 def ephysic(ienum): #because yes
     global expos
     global eypos
@@ -224,7 +203,7 @@ def ephysic(ienum): #because yes
     if eground[ienum] == False:
         evy[ienum]+=.2
 
-def enemy(enum,etype): #Makes something to fight
+def enemy(enum,etype,efren): #Makes something to fight
     global expos
     global eypos
     global eleftn
@@ -238,7 +217,13 @@ def enemy(enum,etype): #Makes something to fight
     global vy
     global vloss
     global maxspeed
+    global phurt
+    global php
     ewell[enum] = etype
+    if elive[enum] == False:
+        expos[enum] = 10000
+        eypos[enum] = 10000
+        return
     if etype == "goomb" or etype == "smart" or etype == "jumpy":
         if eleftn[enum] == False:
             expos[enum] += 2
@@ -293,7 +278,16 @@ def enemy(enum,etype): #Makes something to fight
         expos[enum] += evx[enum]
         eypos[enum] += evy[enum]
         pygame.draw.rect(screen, (50, 100, 50), (expos[enum], eypos[enum]+vloss, 20, 40-vloss))
-        
+    if efren == False:
+        if xpos>(expos[enum]-20) and xpos<(expos[enum]+exsize[enum]):
+            if ypos+40 >eypos[enum] and ypos+40 <(eypos[enum]+10):
+                vy = -8
+                elive[enum] = False
+            elif (ypos+40 >eypos[enum] and ypos+(40-vloss) <=(eypos[enum]+eysize[enum])) and phurt <= 0:
+                phurt = 100
+                php -= 1
+
+
 #Important level things        
 
 def treedog(xwin, ywin):
@@ -303,7 +297,7 @@ def treedog(xwin, ywin):
     global vy
     global level
     screen.blit(dog, (xwin, ywin))
-    if xpos>(xwin-20) and xpos<164 and ypos+40 >ywin and ypos <164:
+    if xpos>(xwin-20) and xpos<164 and ypos+40 >ywin and ypos <164 and dying == False:
         level =+ 1
         vx = 0
         vy = 0
@@ -337,9 +331,9 @@ def levelmake(): #Makes the level
         
         makeroof(100, 50, 150, 300, 725, 100, 50)
 
-        enemy(0, "smart")
-        enemy(1, "goomb")
-        enemy(2, "jumpy")
+        enemy(0, "smart", True)
+        enemy(1, "goomb", False)
+        enemy(2, "jumpy", True)
         treedog(100, 100)
     if level == 1:
         
@@ -355,12 +349,54 @@ def levelmake(): #Makes the level
         
         makeplatform(0, 200, 100, 900, 660, 100, 10)
         
+        makeplatform(0, 200, 100, 400, 460, 200, 300)
+        
         makeroof(100, 50, 150, 905, 725, 90, 50)
-        enemy(0, "smart")
-        enemy(1, "smart")
-        enemy(2, "smart")
+        enemy(0, "smart", False)
+        enemy(1, "smart", False)
+        enemy(2, "smart", False)
         treedog(550, 100)
-pygame.mixer.music.play(-1)#start background music
+
+def levelreload(): #reload the level
+    global xpos
+    global ypos
+    global expos
+    global eypos
+    global exsize
+    global eysize
+    global fancymovey
+    global fancything
+    global php
+    global dying
+    global vloss
+    global phurt
+    global elive
+    phurt = 0
+    php = 3
+    dying = False
+    vloss = 0
+    elive = [True,True,True]
+    if level == 0:
+        xpos = 300
+        ypos = 770
+        expos = [150,700,200]
+        eypos = [550,750,200]
+        fancymovey=[200,0,0,0]
+        fancything=[True,True,True,True]
+        exsize = [20, 40, 30]
+        eysize = [20, 30, 40]
+    elif level == 1:
+        xpos = 100
+        ypos = 760
+        expos = [1080, 700, 0]
+        eypos = [760, 500, 0]
+        exsize = [20, 20, 20]
+        eysize = [20, 40, 60]
+
+#pygame.mixer.music.play(-1)#start background music
+
+
+
 #-------------------------------------------------------------------------
 
 
@@ -371,7 +407,7 @@ while not gameover: #GAME LOOP##################################################
     for event in pygame.event.get(): #quit game if x is pressed in top corner
         if event.type == pygame.QUIT:
             gameover = True
-      
+        
         if event.type == pygame.KEYDOWN: #keyboard input
             if event.key == pygame.K_LEFT:
                 keys[LEFT]=True
@@ -395,7 +431,12 @@ while not gameover: #GAME LOOP##################################################
                 keys[SHIFT]=False
             elif event.key == pygame.K_DOWN:
                 keys[DOWN]=False
-        
+    if dying == True:
+        keys[UP] = False
+        keys[DOWN] = False
+        keys[LEFT] = False
+        keys[RIGHT] = False
+        keys[SHIFT] = False
           
     #physics section--------------------------------------------------------------------
     #MOVEMENT
@@ -459,13 +500,24 @@ while not gameover: #GAME LOOP##################################################
     #gravity
     if isOnGround == False:
         vy+=.2 #notice this grows over time, aka ACCELERATION
-    
+    if vy > 10:
+        vy = 10
     if leftness == True:
         vx=(playaccel * -1)
     else:
         vx=playaccel
     
     
+    phurt -= 2
+    if phurt < -100:
+        phurt = -100 #so the game doesn't overflow :D
+    if php <= 0:
+        dying = True
+    if dying == True:
+        vloss += 1
+    if vloss >= 40:
+        levelreload()
+        
   
     # RENDER Section--------------------------------------------------------------------------------
     
@@ -480,19 +532,22 @@ while not gameover: #GAME LOOP##################################################
     #objects
     levelmake()
     
-    
     screen.blit(dirt, (0, 800))
     
     if ducking==True:
         if vloss != 20:
             vloss += 5
-    else:
+    elif dying == False:
         if vloss != 0:
             vloss -= 5
     #update player position
     xpos+=vx
     ypos+=vy
-    pygame.draw.rect(screen, (100, 200, 100), (xpos, ypos+vloss, 20, 40-vloss))
+    if phurt > 0:
+        pygame.draw.rect(screen, (155+phurt, 0, 0), (xpos, ypos+vloss, 20, 40-vloss))
+    else:
+        pygame.draw.rect(screen, (100, 200, 100), (xpos, ypos+vloss, 20, 40-vloss))
     pygame.display.flip()#this actually puts the pixel on the screen
+    print(php)
 #end game loop------------------------------------------------------------------------------
 pygame.quit()
