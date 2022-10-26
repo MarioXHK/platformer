@@ -1,7 +1,8 @@
 import pygame
-
+import random
 print("Hello, Moon")
 print("This takes place in the same universe as platformer")
+amongst = (0, 0, 0)
 pygame.init()
 screen = pygame.display.set_mode((640,480))
 pygame.display.set_caption("Dino Jumper")
@@ -74,7 +75,7 @@ while not doExit:
         screen.blit(thesky, (skypos+3840, 0))
     if skypos+3840 <= 0:
         skypos = 0
-    
+    pygame.draw.circle(screen, (255, 230, 50), (550, 100), 50)
     screen.blit(dirt, (dirtpos, 400))
     if dirtpos <= -(3008-640):
         screen.blit(dirt, (dirtpos+3008, 400))

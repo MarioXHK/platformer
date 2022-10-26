@@ -1,5 +1,6 @@
 #INITIAL STUFF (Variables, Pygame, ect)
 import pygame
+import random
 pygame.init()  
 pygame.display.set_caption("easy platformer")  # sets the window title
 screen = pygame.display.set_mode((1200, 900))  # creates game screen
@@ -33,17 +34,17 @@ php = 3
 
 
 #enemy variables
-expos = [150,700,200]
-eypos = [550,750,200]
-evx = [0,0,0]
-evy = [0,0,0]
-enaccel = [0,0,0]
-exsize = [20, 40, 30]
-eysize = [20, 30, 40]
-elive = [True,True,True]
-eleftn = [False,False,False]
-eground = [False,False,False]
-ewell = ["goomb","goomb","goomb"]
+expos = [150,700,200,100,0]
+eypos = [550,750,200,100,0]
+evx = [0,0,0,0,0]
+evy = [0,0,0,0,0]
+enaccel = [0,0,0,0,0]
+exsize = [20, 40, 30, 30, 10]
+eysize = [20, 30, 40, 30, 10]
+elive = [True,True,True,True,False]
+eleftn = [False,False,False,False,False]
+eground = [False,False,False,False,False]
+ewell = ["goomb","goomb","goomb","goomb","goomb"]
 
 #Level variables
 level = 0
@@ -334,6 +335,7 @@ def levelmake(): #Makes the level
         enemy(0, "smart", True)
         enemy(1, "goomb", False)
         enemy(2, "jumpy", True)
+        enemy(3, "smart", False)
         treedog(100, 100)
     if level == 1:
         
@@ -349,12 +351,14 @@ def levelmake(): #Makes the level
         
         makeplatform(0, 200, 100, 900, 660, 100, 10)
         
-        makeplatform(0, 200, 100, 400, 460, 200, 300)
+        makeplatform(0, 200, 100, 400, 460, 200, 30)
         
+        makeplatform(random.randrange(1, 20), 200, 125, 400, 400, 50, 20)
         makeroof(100, 50, 150, 905, 725, 90, 50)
         enemy(0, "smart", False)
         enemy(1, "smart", False)
         enemy(2, "smart", False)
+        enemy(3, "smart", False)
         treedog(550, 100)
 
 def levelreload(): #reload the level
@@ -375,23 +379,24 @@ def levelreload(): #reload the level
     php = 3
     dying = False
     vloss = 0
-    elive = [True,True,True]
     if level == 0:
         xpos = 300
         ypos = 770
-        expos = [150,700,200]
-        eypos = [550,750,200]
         fancymovey=[200,0,0,0]
         fancything=[True,True,True,True]
-        exsize = [20, 40, 30]
-        eysize = [20, 30, 40]
+        expos = [150,700,200,100,0]
+        eypos = [550,750,200,100,0]
+        exsize = [20, 40, 30, 30, 10]
+        eysize = [20, 30, 40, 30, 10]
+        elive = [True,True,True,True,False]
     elif level == 1:
         xpos = 100
         ypos = 760
-        expos = [1080, 700, 0]
-        eypos = [760, 500, 0]
-        exsize = [20, 20, 20]
-        eysize = [20, 40, 60]
+        expos = [1080, 700, 0,0]
+        eypos = [760, 500, 0,0]
+        exsize = [20, 20, 20,9]
+        eysize = [20, 40, 60,9]
+        elive = [True,True,True,False]
 
 #pygame.mixer.music.play(-1)#start background music
 
@@ -483,7 +488,7 @@ while not gameover: #GAME LOOP##################################################
     #COLLISION
 
     isOnGround = False
-    eground = [False,False,False]
+    eground = [False,False,False,False,False]
 
     if xpos < 0:
         xpos = 0
