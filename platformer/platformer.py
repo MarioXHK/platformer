@@ -14,7 +14,7 @@ RIGHT=1
 UP = 2
 DOWN = 3
 SHIFT = 4
-
+REST = 5
 
 #player variables
 xpos = 300 #xpos of player
@@ -25,7 +25,7 @@ playaccel = 0 #umm... amogus?
 leftness = True #Are you going left or right?
 maxspeed = 0 #The speed limit
 vloss = 0 #the height lost from the player
-keys = [False, False, False, False, False] #this list holds whether each key has been pressed
+keys = [False, False, False, False, False, False] #this list holds whether each key has been pressed
 isOnGround = False #this variable stops gravity from pulling you down more when on a platform
 ducking = False
 phurt = 0
@@ -68,6 +68,8 @@ dirt = pygame.image.load("dirt.jpg")
 
 #Sounds
 jump = pygame.mixer.Sound('jump.ogg')#load in sound effect
+hurt = pygame.mixer.Sound('ouch.mp3')
+die = pygame.mixer.Sound('pan.mp3')
 music = pygame.mixer.music.load('music.ogg')#load in background music
 
 #FUNCTION DEFINING-------------------------------------------------------------------
@@ -287,6 +289,10 @@ def enemy(enum,etype,efren): #Makes something to fight
             elif (ypos+40 >eypos[enum] and ypos+(40-vloss) <=(eypos[enum]+eysize[enum])) and phurt <= 0:
                 phurt = 100
                 php -= 1
+                if php <= 0:
+                    pygame.mixer.Sound.play(die)
+                else:
+                    pygame.mixer.Sound.play(hurt)
 
 
 #Important level things        
@@ -392,11 +398,11 @@ def levelreload(): #reload the level
     elif level == 1:
         xpos = 100
         ypos = 760
-        expos = [1080, 700, 0,0]
-        eypos = [760, 500, 0,0]
-        exsize = [20, 20, 20,9]
-        eysize = [20, 40, 60,9]
-        elive = [True,True,True,False]
+        expos = [1080, 700, 0,0,0]
+        eypos = [760, 500, 0,0,0]
+        exsize = [20, 20, 20,9,5]
+        eysize = [20, 40, 60,9,16]
+        elive = [True,True,True,False,False]
 
 #pygame.mixer.music.play(-1)#start background music
 
@@ -424,6 +430,8 @@ while not gameover: #GAME LOOP##################################################
                 keys[RIGHT]=True
             elif event.key == pygame.K_LSHIFT:
                 keys[SHIFT]=True
+            elif event.key == pygame.K_r:
+                keys[REST] = False
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 keys[LEFT]=False
@@ -436,6 +444,8 @@ while not gameover: #GAME LOOP##################################################
                 keys[SHIFT]=False
             elif event.key == pygame.K_DOWN:
                 keys[DOWN]=False
+            elif event.key == pygame.K_r:
+                keys[REST] = False
     if dying == True:
         keys[UP] = False
         keys[DOWN] = False
@@ -539,7 +549,7 @@ while not gameover: #GAME LOOP##################################################
     
     screen.blit(dirt, (0, 800))
     
-    if ducking==True:
+    if ducking==True or keys[REST] == True:
         if vloss != 20:
             vloss += 5
     elif dying == False:
