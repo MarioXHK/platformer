@@ -34,7 +34,7 @@ php = 3
 
 
 #enemy variables
-expos = [150,700,200,100,0]
+expos = [150,700,200,200,0]
 eypos = [550,750,200,100,0]
 evx = [0,0,0,0,0]
 evy = [0,0,0,0,0]
@@ -69,7 +69,7 @@ dirt = pygame.image.load("dirt.jpg")
 #Sounds
 jump = pygame.mixer.Sound('jump.ogg')#load in sound effect
 hurt = pygame.mixer.Sound('ouch.mp3')
-die = pygame.mixer.Sound('pan.mp3')
+die = pygame.mixer.Sound('dust.mp3')
 music = pygame.mixer.music.load('music.ogg')#load in background music
 
 #FUNCTION DEFINING-------------------------------------------------------------------
@@ -206,7 +206,7 @@ def ephysic(ienum): #because yes
     if eground[ienum] == False:
         evy[ienum]+=.2
 
-def enemy(enum,etype,efren): #Makes something to fight
+def enemy(enum,etype,efren,ehurt = "none"): #Makes something to fight
     global expos
     global eypos
     global eleftn
@@ -282,17 +282,27 @@ def enemy(enum,etype,efren): #Makes something to fight
         eypos[enum] += evy[enum]
         pygame.draw.rect(screen, (50, 100, 50), (expos[enum], eypos[enum]+vloss, 20, 40-vloss))
     if efren == False:
+        pygame.draw.rect(screen, (250, 0, 0), (expos[enum], eypos[enum], 10, 10))
         if xpos>(expos[enum]-20) and xpos<(expos[enum]+exsize[enum]):
             if ypos+40 >eypos[enum] and ypos+40 <(eypos[enum]+10):
-                vy = -8
-                elive[enum] = False
+                if ehurt = "multistomp" and eysize[enum] > 20:
+                    eysize[enum] -= 20
+                elif ehurt != "spike":
+                    vy = -8
+                    elive[enum] = False
+                    pygame.mixer.Sound.play(hurt)
             elif (ypos+40 >eypos[enum] and ypos+(40-vloss) <=(eypos[enum]+eysize[enum])) and phurt <= 0:
                 phurt = 100
                 php -= 1
                 if php <= 0:
                     pygame.mixer.Sound.play(die)
-                else:
-                    pygame.mixer.Sound.play(hurt)
+                pygame.mixer.Sound.play(hurt)
+    else:
+        pygame.draw.rect(screen, (0, 250, 0), (expos[enum], eypos[enum], 10, 10))
+    if ehurt == "spike":
+        pygame.draw.rect(screen, (0, 250, 0), ((expos[enum]+exsize[enum])-10, (eypos[enum]+eysize[enum])-10, 10, 10))
+    elif ehurt == "multistomp":
+        pygame.draw.rect(screen, (250, 120, 0), ((expos[enum]+exsize[enum])-10, (eypos[enum]+eysize[enum])-10, 10, 10))
 
 
 #Important level things        
@@ -390,7 +400,7 @@ def levelreload(): #reload the level
         ypos = 770
         fancymovey=[200,0,0,0]
         fancything=[True,True,True,True]
-        expos = [150,700,200,100,0]
+        expos = [150,700,200,200,0]
         eypos = [550,750,200,100,0]
         exsize = [20, 40, 30, 30, 10]
         eysize = [20, 30, 40, 30, 10]
@@ -431,7 +441,7 @@ while not gameover: #GAME LOOP##################################################
             elif event.key == pygame.K_LSHIFT:
                 keys[SHIFT]=True
             elif event.key == pygame.K_r:
-                keys[REST] = False
+                keys[REST] = True
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 keys[LEFT]=False
@@ -521,12 +531,13 @@ while not gameover: #GAME LOOP##################################################
         vx=(playaccel * -1)
     else:
         vx=playaccel
-    
+    if keys[REST] == True:
+        pygame.mixer.Sound.play(die)
     
     phurt -= 2
     if phurt < -100:
         phurt = -100 #so the game doesn't overflow :D
-    if php <= 0:
+    if php <= 0 or keys[REST] == True:
         dying = True
     if dying == True:
         vloss += 1
@@ -549,7 +560,7 @@ while not gameover: #GAME LOOP##################################################
     
     screen.blit(dirt, (0, 800))
     
-    if ducking==True or keys[REST] == True:
+    if ducking==True:
         if vloss != 20:
             vloss += 5
     elif dying == False:
