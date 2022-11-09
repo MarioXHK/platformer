@@ -114,14 +114,14 @@ while not gameover: #GAME LOOP##################################################
         if frameNum>13:
             frameNum = 2
     elif vy < 0:
-        RowNum = 2
+        RowNum = 3
         ticker += 1
         if ticker%2==0:
             frameNum += 1
         if frameNum>11:
             frameNum = 0
     elif vy > 0:
-        RowNum = 3
+        RowNum = 2
         ticker += 1
         if ticker%2==0:
             frameNum += 1
