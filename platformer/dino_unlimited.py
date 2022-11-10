@@ -15,7 +15,9 @@ vy = 0
 ypos = 340
 UP = 0
 DOWN = 1
-keys = [False, False]
+LEFT = 2
+RIGHT = 3
+keys = [False, False, False, False]
 pcolor = (0, 0, 0)
 dead = False
 
@@ -31,7 +33,7 @@ jump = pygame.mixer.Sound('jump.ogg')#load in sound effect
 die = pygame.mixer.Sound('ouch.mp3')
 
 #Scroll factors
-scroll = 5
+scroll = 0
 dirtpos = 0
 skypos = 0
 sunpos = 550
@@ -82,16 +84,30 @@ while not doExit:
                 keys[UP]=True
             elif event.key == pygame.K_DOWN:
                 keys[DOWN]=True
+            elif event.key == pygame.K_LEFT:
+                keys[LEFT]=True
+            elif event.key == pygame.K_RIGHT:
+                keys[RIGHT]=True
     elif event.type == pygame.KEYUP: #learn
             if event.key == pygame.K_UP:
                 keys[UP]=False
             elif event.key == pygame.K_DOWN:
                 keys[DOWN]=False
+            elif event.key == pygame.K_LEFT:
+                keys[LEFT]=False
+            elif event.key == pygame.K_RIGHT:
+                keys[RIGHT]=False
     
     if keys[UP] == True and isOnGround == True: #only jump when on the ground
         vy = -8
         isOnGround = False
         pygame.mixer.Sound.play(jump)
+    
+    if keys[RIGHT] == True:
+        scroll+=0.1
+    if keys[LEFT] == True:
+        scroll-=0.1
+    print(scroll)
     
     if ypos > 340:
         isOnGround = True
@@ -117,10 +133,7 @@ while not doExit:
     
     #rendererrererer
     screen.fill((0,0,0)) #wipe screen so it doesn't smear
-    if scroll > 25:
-        scroll = 25
-    else:
-        scroll+=0.001
+    
     screen.blit(thesky, (skypos, 0))
     if skypos <= -(3840-640):
         screen.blit(thesky, (skypos+3840, 0))
