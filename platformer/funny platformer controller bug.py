@@ -497,14 +497,6 @@ while not gameover: #GAME LOOP##################################################
             keys[UP]=True
         else:
             keys[UP]=False
-        if controller.get_button(2) == 1:
-            keys[SHIFT]=True
-        else:
-            keys[SHIFT]=False
-        if controller.get_button(6) == 1:
-            keys[REST]=True
-        else:
-            keys[REST]=False
         if yVel > 0.1:
             keys[DOWN]=True
         else:
@@ -632,10 +624,14 @@ while not gameover: #GAME LOOP##################################################
     screen.blit(dirt, (0, 800))
     
     if ducking==True:
-        if vloss < 20:
-            vloss += 5
+        if controlled == True:
+            if vloss < (40-(yVel*20)):
+                vloss += yVel*5
+        else:
+            if vloss < 20:
+                vloss += 5
     elif dying == False:
-        if vloss > 0:
+        if vloss != 0:
             vloss -= 5
     #update player position
     xpos+=vx
