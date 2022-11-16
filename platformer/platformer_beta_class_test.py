@@ -158,13 +158,13 @@ def echeck(irecx,irech,irecy,irecv,enumb,prtype):
                 elif ewell[enumb].xpos > (irecx+irech)-ewell[enumb].xsize:
                     ewell[enumb].left = True
     elif prtype == "wall":
-        if ewell[enumb].ypos+ewell[enumb].ysize >irecy and ewell[enumb].ypos <(irecy+irecv) and ewell[enumb].xpos+exsize[enumb] >= irecx and ewell[enumb].xpos <= (irecx+irech):
+        if ewell[enumb].ypos+ewell[enumb].ysize >irecy and ewell[enumb].ypos <(irecy+irecv) and ewell[enumb].xpos+ewell[enumb].xsize >= irecx and ewell[enumb].xpos <= (irecx+irech):
             if ewell[enumb].left == True:
                 ewell[enumb].left = False
             else:
                 ewell[enumb].left = True
     elif prtype == "roof":
-        if ewell[enumb].xpos>(irecx-exsize[enumb]) and ewell[enumb].xpos<(irecx+irech) and ewell[enumb].ypos >irecy and ewell[enumb].ypos <(irecy+irecv) and ewell[enumb].vy < 0:
+        if ewell[enumb].xpos>(irecx-ewell[enumb].xsize) and ewell[enumb].xpos<(irecx+irech) and ewell[enumb].ypos >irecy and ewell[enumb].ypos <(irecy+irecv) and ewell[enumb].vy < 0:
             ewell[enumb].ypos = (irecy+irecv)
             ewell[enumb].vy = 0
 
@@ -184,6 +184,8 @@ class enemy:
         self.vy = 0
         if random.randrange(0, 2) == 1:
             self.left = True
+    def deprint(self):
+        print([self.type, self.fren, self.hurt, self.live, self.xpos, self.ypos, self.xsize, self.ysize, self.left, self.grounded, self.vx, self.xy])
     def movement(self,speed = 2):
         global xpos
         global ypos
@@ -237,13 +239,13 @@ class enemy:
             pygame.draw.rect(screen, (200, 20, 2), (self.xpos, self.ypos, self.xsize, self.ysize))
         else:
             pygame.draw.rect(screen, (0, 255, 255), (self.xpos, self.ypos, self.xsize, self.ysize))
-    if self.fren == False:
+        if self.fren == False:
             pygame.draw.rect(screen, (250, 0, 0), (self.xpos, self.ypos, 10, 10))
             if ehurt == "spike":
                 pygame.draw.rect(screen, (250, 0, 0), ((self.xpos+self.xsize)-10, (self.ypos+self.ysize)-10, 10, 10))
             elif ehurt == "multistomp":
                 pygame.draw.rect(screen, (250, 200, 0), ((self.xpos+self.xsize)-10, (self.ypos+self.ysize)-10, 10, 10))
-    else:
+        else:
             pygame.draw.rect(screen, (0, 250, 0), (self.xpos, self.ypos, 10, 10))
     
 
@@ -344,7 +346,7 @@ def levelreload(): #reload the level
 
 #pygame.mixer.music.play(-1)#start background music
 
-
+ewell = [enemy("smart", True,150,550,20,20),enemy("goomb", False, "na",700,750,40,30),enemy("jumpy", True, "na",200,200,30,40),enemy("smart", False, "na", 200, 100, 30, 30),enemy("smart", True)]
 
 #-------------------------------------------------------------------------
 
@@ -490,8 +492,9 @@ while not gameover: #GAME LOOP##################################################
     levelmake()
     for er in range(len(ewell)):
         ewell[er].erender()
+        ewell[er].deprint()
     screen.blit(dirt, (0, 800))
-    
+    print(ewell)
     if ducking==True:
         if vloss != 20:
             vloss += 5
